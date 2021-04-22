@@ -16,11 +16,47 @@ import java.util.Collections;
  *  decimal places (e.g. 1.00).
  *
 */
+import java.text.DecimalFormat;
+import java.util.Arrays;
 
 public class CWK2Q1 {
 
+	private static final ArrayList<Integer> gaps = new ArrayList<Integer>(Arrays.asList(511, 255, 127, 63, 31, 15, 7, 3, 1));
+
+	private static void printArray(ArrayList<Double> array){
+		//https://stackoverflow.com/q/2538787
+		DecimalFormat formatDecimals = new DecimalFormat();	
+		formatDecimals.setMaximumFractionDigits(2);
+		formatDecimals.setMinimumFractionDigits(2);
+		int n = array.size();
+		String output = "[";
+		for (int printer = 0; printer < n; printer++){
+			if (printer != n - 1){
+				output = output + formatDecimals.format(array.get(printer)) + ", ";
+			} else{
+				output = output + formatDecimals.format(array.get(printer)) + "]";
+			}
+		}
+		System.out.println(output);
+	}
+
 	public static void shell_sort(ArrayList<Double> array) {
-		
+		//Pseudocode from https://en.wikipedia.org/wiki/Shellsort
+		int n = array.size();
+		if (n > 1000){
+			return;
+		}
+		int j;
+		for (Integer gap : gaps){
+			for (int i = gap; i < n; i++){
+				double temp = array.get(i);
+				for (j = i; j >= gap && array.get(j - gap) > temp; j -= gap){
+					array.set(j, array.get(j - gap));
+				}
+				array.set(j, temp);
+			}
+			printArray(array);
+		}
 	}
 
 	public static void main(String[] args) {

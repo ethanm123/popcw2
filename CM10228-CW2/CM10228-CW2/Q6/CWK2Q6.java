@@ -36,15 +36,129 @@
  *
  *  You should test your program using the example files provided.
 */
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class CWK2Q6 {
 
+  private static final ArrayList<String> punctuationToEndSentence = new ArrayList<String>(Arrays.asList("!", ".", "?"));
+	private static ArrayList<String> wordsToRedact;
+
+  private static String asteriskStringGenerator(String toAsterisk){
+		boolean dot = false;
+    if (wordsToRedact.contains(toAsterisk.replaceAll("\"|'|“", ""))){
+			if (wordsToRedact.get(wordsToRedact.indexOf(toAsterisk.replaceAll("\"|'|“", ""))).contains(".")){
+				dot = true;
+			}
+		}
+		String asteriskString = "";
+    for (int i = 0; i < toAsterisk.length(); i++){
+      if (Character.isLetter(toAsterisk.charAt(i)) || (dot && toAsterisk.charAt(i) == ".".charAt(0))){
+        asteriskString = asteriskString + "*";
+      } else{
+        asteriskString = asteriskString + toAsterisk.charAt(i);
+      }
+    }
+    return asteriskString;
+  }
+
+  private static ArrayList<String> getRedactList(String redactFileName) throws IOException{
+		BufferedReader redactReader = new BufferedReader(new FileReader(redactFileName));
+    ArrayList<String> redactList = new ArrayList<String>();
+		String line;
+    String previousLine = "";
+		while ((line = redactReader.readLine()) != null){
+			for (String s : line.split(" ")){
+        redactList.add(s);
+      }
+		}
+    redactReader.close();
+    return redactList;
+	}
+
+  private static boolean firstLetterCapital(String toTest){
+    for (int i = 0; i < toTest.length(); i++){
+      if (Character.isLetter(toTest.charAt(i))){
+        if (Character.isUpperCase(toTest.charAt(i))){
+          return true;
+        } else{
+          return false;
+        }
+      }
+    }
+    return false;
+  }
+
+  private static boolean testProperNoun(String toTest, String toTestNoPunc, String prevWord, String previousLine, ArrayList<String> wordsToRedact){
+		if (((previousLine.equals("") && prevWord.length() == 0) || (prevWord.length() > 0 && punctuationToEndSentence.contains(Character.toString(prevWord.charAt(prevWord.length() - 1)))))){
+      return wordsToRedact.contains(toTestNoPunc.replaceAll("\"|'|“", ""));
+    } else if (toTestNoPunc.equals("I")){
+      return false;
+    } else{
+      return true;
+    }
+  }
+
+  private static void makeResultsFile() throws IOException{
+    File resutltFile = new File("./result.txt");
+    if (!resutltFile.exists()) {
+      resutltFile.createNewFile();
+    }
+  }
+
+  private static void writeToResultsFile(StringBuffer fileRewrite) throws IOException{
+    FileOutputStream fileOut = new FileOutputStream("./result.txt");
+    fileOut.write(fileRewrite.toString().getBytes());
+    fileOut.close();
+  }
+
 	public static void redactWords(String textFilename, String redactWordsFilename){
-		
+    try{
+			int count = 0;
+      makeResultsFile();
+      wordsToRedact = getRedactList(redactWordsFilename);
+      BufferedReader textFileReader = new BufferedReader(new FileReader(textFilename));
+      StringBuffer fileRewrite = new StringBuffer();
+      String line, lineNoPunc, currentWordNoPunc;
+      String previousLine = "";
+      String prevWord = "";
+      String newLineString;
+      List<String> currentLineWords, currentLineWordsNoPunc;
+      while ((line = textFileReader.readLine()) != null){
+        newLineString = "";
+        //Regex from https://www.studytonight.com/java-examples/how-to-remove-punctuation-from-string-in-java
+        currentLineWords = Arrays.asList(line.split(" "));
+				if (line.equals("")){
+					prevWord = "";
+				}
+        for (int i = 0; i < currentLineWords.size(); i++){
+					currentWordNoPunc = currentLineWords.get(i).replaceAll("\\p{Punct}", "");
+          if (firstLetterCapital(currentWordNoPunc)){
+						if (testProperNoun(currentLineWords.get(i), currentWordNoPunc, prevWord, previousLine, wordsToRedact)){
+							newLineString = newLineString + " " + asteriskStringGenerator(currentLineWords.get(i));
+						} else{
+							newLineString = newLineString + " " + currentLineWords.get(i);
+						}
+          } else{
+            newLineString = newLineString + " " + currentLineWords.get(i);
+          }
+					prevWord = currentLineWords.get(i);
+        }
+        fileRewrite.append(newLineString + "\n");
+        previousLine = line;
+        prevWord = currentLineWords.get(currentLineWords.size() - 1);
+      }
+      writeToResultsFile(fileRewrite);
+      textFileReader.close();
+    } catch (IOException e){
+      System.out.println("Error reading/writing file");
+    }
 	}
 
 	public static void main(String[] args) {
-		String inputFile = "./debate.txt";
+		String inputFile = "./warandpeace.txt";
 		String redactFile = "./redact.txt";
 		redactWords(inputFile, redactFile);
 	}
