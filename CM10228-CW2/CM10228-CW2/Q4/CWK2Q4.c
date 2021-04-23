@@ -35,6 +35,13 @@ Node* XORAddresses(Node *address1, Node *address2){
 	return (Node*) ((uintptr_t) (address1) ^ (uintptr_t) (address2));
 }
 
+int checkStringLength(const char *newString){
+	if (strlen(newString) + 1 > 64){
+		return 0;
+	}
+	return 1;
+}
+
 Node* makeNode(const char *newString){
 	char *string_to_insert = malloc(strlen(newString) * (sizeof(char)) + 1);
 	if (string_to_insert == NULL){
@@ -62,6 +69,9 @@ void deleteNode(Node *nodeToDelete){
 }
 
 void insert_string(const char* newObj){
+	if (checkStringLength(newObj) == 0){
+		return;
+	}
 	Node *thisNode = makeNode(newObj);
 	if (head != NULL){
 		head->xord_address = XORAddresses(thisNode, head->xord_address);
@@ -74,7 +84,7 @@ int insert_before(const char* before, const char* newObj){
 	Node *current = head;
 	Node *prev = NULL;
 	Node *next;
-	while (current != NULL){
+	while (current != NULL && checkStringLength(newObj) == 1){
 		next = XORAddresses(current->xord_address, prev);
 		if (prev == NULL && strcmp(current->item, before) == 0){
 			insert_string(newObj);
@@ -97,7 +107,7 @@ int insert_after(const char* after, const char* newObj) {
 	Node *current = head;
 	Node *prev = NULL;
 	Node *next;
-	while (current != NULL){
+	while (current != NULL && checkStringLength(newObj) == 1){
 		next = XORAddresses(current->xord_address, prev);
 		if (prev != NULL && strcmp(after, prev->item) == 0){
 			Node *thisNode = makeNode(newObj);
