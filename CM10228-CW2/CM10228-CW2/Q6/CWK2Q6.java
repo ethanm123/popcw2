@@ -45,6 +45,7 @@ public class CWK2Q6 {
 
   private static final ArrayList<String> punctuationToEndSentence = new ArrayList<String>(Arrays.asList("!", ".", "?"));
 	private static ArrayList<String> wordsToRedact;
+	private static ArrayList<String> previouslyRedacted = new ArrayList<String>();
 
   private static String asteriskStringGenerator(String toAsterisk){
 		boolean dot = false;
@@ -92,11 +93,14 @@ public class CWK2Q6 {
   }
 
   private static boolean testProperNoun(String toTest, String toTestNoPunc, String prevWord, String previousLine, ArrayList<String> wordsToRedact){
-		if (((previousLine.equals("") && prevWord.length() == 0) || (prevWord.length() > 0 && punctuationToEndSentence.contains(Character.toString(prevWord.charAt(prevWord.length() - 1)))))){
+		if (previouslyRedacted.contains(toTestNoPunc.replaceAll("\"|'|“", "").toUpperCase())){
+			return true;
+		} else if (((previousLine.equals("") && prevWord.length() == 0) || (prevWord.length() > 0 && punctuationToEndSentence.contains(Character.toString(prevWord.charAt(prevWord.length() - 1))) && !previouslyRedacted.contains(toTestNoPunc.replaceAll("\"|'|“", "").toUpperCase())))){
       return wordsToRedact.contains(toTestNoPunc.replaceAll("\"|'|“", ""));
     } else if (toTestNoPunc.equals("I")){
       return false;
     } else{
+			previouslyRedacted.add(toTestNoPunc.replaceAll("\"|'|“", "").toUpperCase());
       return true;
     }
   }

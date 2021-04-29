@@ -53,10 +53,11 @@ int calculate_loading_factor(){
 }
 
 void resize_map(int new_size) {
-	//Learnt to malloc for pointers: https://www.guru99.com/malloc-in-c-example.html
-	char **new_map = malloc(new_size * sizeof(*new_map));
+	//malloc code from: https://www.guru99.com/malloc-in-c-example.html
+	char **new_map = (char **) malloc(new_size * sizeof(*new_map));
 	if (new_map == NULL){
-		return;
+		printf("Failed to allocate more memory");
+		exit(0);
 	}
 	int temp = size;
 	int new_hash;
@@ -76,9 +77,10 @@ void resize_map(int new_size) {
 
 void add_to_map(const char *name) {
 	int hash = hash_function(name);
-	char *string_to_insert = malloc((strlen(name) + 1) * sizeof(char));
+	char *string_to_insert = (char *) malloc((strlen(name) + 1) * sizeof(char));
 	if (string_to_insert == NULL){
-		return;
+		printf("Failed to allocate more memory");
+		exit(0);
 	}
 	strcpy(string_to_insert, name);
 	hash_map[get_next_free_index(hash, hash_map)] = string_to_insert;

@@ -48,7 +48,6 @@ public class CWK2Q8{
     return totalTuesdays;
   }
 
-
 	public static void main(String[] args){
 		int result = CWK2Q8.howManyTuesdays();
 		System.out.println("Number of Tuesdays = " + result);

@@ -43,15 +43,17 @@ int checkStringLength(const char *newString){
 }
 
 Node* makeNode(const char *newString){
-	char *string_to_insert = malloc(strlen(newString) * (sizeof(char)) + 1);
+	char *string_to_insert = (char *) malloc(strlen(newString) * (sizeof(char)) + 1);
 	if (string_to_insert == NULL){
 		printf("Error allocating memory for string.");
+		exit(0);
 	} else{
 		strcpy(string_to_insert, newString);
 	}
-	Node *thisNode = malloc(sizeof(Node));
+	Node *thisNode = (Node *) malloc(sizeof(Node));
 	if (thisNode == NULL){
 		printf("Error allocating memory for node.");
+		exit(0);
 	} else{
 		thisNode->item = string_to_insert;
 		element_count++;
