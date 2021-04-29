@@ -22,102 +22,116 @@
 #include <string.h>
 #include <inttypes.h>
 
-typedef struct Node{
+//Definses the node structure. It holds a string and a pointer to a node.
+typedef struct Node {
 	char *item;
 	struct Node *xord_address;
 }Node;
 
-Node *head = NULL;
-int element_count = 0;
+Node *head = NULL; //The head element.
+int element_count = 0; //The number of elements in the linked list.
 
-Node* XORAddresses(Node *address1, Node *address2){
-	// https://stackoverflow.com/questions/26569728/using-xor-with-pointers-in-c
+//XORs 2 Node pointers and returns the result.
+Node* XORAddresses(Node *address1, Node *address2) {
+	//Learnt to XOR pointers from: https://stackoverflow.com/questions/26569728/using-xor-with-pointers-in-c
 	return (Node*) ((uintptr_t) (address1) ^ (uintptr_t) (address2));
 }
 
-int checkStringLength(const char *newString){
-	if (strlen(newString) + 1 > 64){
+//Makes sure the string is not greater than 64 characters (bytes) in length.
+int checkStringLength(const char *newString) {
+	if (strlen(newString) + 1 > 64) {
 		return 0;
 	}
 	return 1;
 }
 
-Node* makeNode(const char *newString){
+//Allocates memory for, and creates a node. Returns a pointer to this node.
+Node* makeNode(const char *newString) {
+	//Allocate memory to store the node's item.
 	char *string_to_insert = (char *) malloc(strlen(newString) * (sizeof(char)) + 1);
-	if (string_to_insert == NULL){
+	if (string_to_insert == NULL) { //Check if malloc returns a null pointer.
 		printf("Error allocating memory for string.");
 		exit(0);
-	} else{
+	} else { //If the pointer is fine then copy the string provided into this new memory slot.
 		strcpy(string_to_insert, newString);
 	}
-	Node *thisNode = (Node *) malloc(sizeof(Node));
-	if (thisNode == NULL){
+	Node *thisNode = (Node *) malloc(sizeof(Node)); //Allocate memory for the node.
+	if (thisNode == NULL) { //Check if malloc returns a null pointer.
 		printf("Error allocating memory for node.");
 		exit(0);
-	} else{
-		thisNode->item = string_to_insert;
-		element_count++;
+	} else {
+		thisNode->item = string_to_insert; //Sets the node's item to the string made earlier.
+		element_count++; //Increments element_counnt.
 	}
 	return thisNode;
 }
 
-void deleteNode(Node *nodeToDelete){
+//Deletes a node. Frees all the memory this node used.
+void deleteNode(Node *nodeToDelete) {
 	free(nodeToDelete->item);
 	free(nodeToDelete);
 	element_count--;
-	if (element_count == 0){
+	//Decrements the element count.
+	if (element_count == 0) { //If there are no elements left, set head to null.
 		head = NULL;
 	}
 }
 
-void insert_string(const char* newObj){
-	if (checkStringLength(newObj) == 0){
+//Adds a node to the start of the linked list.
+void insert_string(const char* newObj) {
+	if (checkStringLength(newObj) == 0) { //Makes sure that the string isn't too long.
 		return;
 	}
-	Node *thisNode = makeNode(newObj);
-	if (head != NULL){
+	Node *thisNode = makeNode(newObj); //Makes a new node with this string.
+	if (head != NULL) { //If this isn't the first element in the list, update the current head's pointer.
 		head->xord_address = XORAddresses(thisNode, head->xord_address);
 	}
-	thisNode->xord_address = head; 
-	head = thisNode;
+	thisNode->xord_address = head; //Update new node's XOR pointer to point to the old head.
+	head = thisNode; //Change head to this new node that is at the start of the list.
 }
 
-int insert_before(const char* before, const char* newObj){
-	Node *current = head;
+//Inserts a node before the given string.
+int insert_before(const char* before, const char* newObj) {
+	Node *current = head; //Allocates the pointers used to loop through the list.
 	Node *prev = NULL;
 	Node *next;
-	while (current != NULL && checkStringLength(newObj) == 1){
+	while (current != NULL && checkStringLength(newObj) == 1) {
 		next = XORAddresses(current->xord_address, prev);
-		if (prev == NULL && strcmp(current->item, before) == 0){
+		if (prev == NULL && strcmp(current->item, before) == 0) {
+			//If we are trying to insert into the head, just call the function that already does this, return success. 
 			insert_string(newObj);
 			return 1;
 		}
-		if (next != NULL && strcmp(before, next->item) == 0){
+		if (next != NULL && strcmp(before, next->item) == 0) {
+			//If the string to insert before is found, make a new node to insert.
 			Node *thisNode = makeNode(newObj);
-			thisNode->xord_address = XORAddresses(current, next);
-			next->xord_address = XORAddresses(XORAddresses(current, next->xord_address), thisNode);
-			current->xord_address = XORAddresses(prev, thisNode);
-			return 1;
+			thisNode->xord_address = XORAddresses(current, next); //Set the new node's XORd address to the XOR of the current node and next node.
+			next->xord_address = XORAddresses(XORAddresses(current, next->xord_address), thisNode); //Updates the next node's XORd address.
+			current->xord_address = XORAddresses(prev, thisNode); //Updates the current XORd address.
+			return 1; //Returns success.
 		}
 		prev = current;
 		current = next;
 	}
-	return 0;
+	return 0; //Couldn't find the string to insert before, return fail.
 }
 
+//Insert a new node after a given string.
 int insert_after(const char* after, const char* newObj) {
-	Node *current = head;
+	Node *current = head; //Defining the pointers needed to loop through the list.
 	Node *prev = NULL;
 	Node *next;
-	while (current != NULL && checkStringLength(newObj) == 1){
+	while (current != NULL && checkStringLength(newObj) == 1) {
 		next = XORAddresses(current->xord_address, prev);
-		if (prev != NULL && strcmp(after, prev->item) == 0){
+		if (prev != NULL && strcmp(after, prev->item) == 0) {
+			//If the previous node contains the string to insert after make a new node.
 			Node *thisNode = makeNode(newObj);
-			thisNode->xord_address = XORAddresses(current, prev);
-			prev->xord_address = XORAddresses(XORAddresses(current, prev->xord_address), thisNode);
-			current->xord_address = XORAddresses(next, thisNode);
-			return 1;
-		} else if (next == NULL && strcmp(after, current->item) == 0){
+			thisNode->xord_address = XORAddresses(current, prev); //Update the new node's XORd address.
+			prev->xord_address = XORAddresses(XORAddresses(current, prev->xord_address), thisNode); //Updates the previous node's XORd address.
+			current->xord_address = XORAddresses(next, thisNode); //Updates the current node's XORd address.
+			return 1; //Return success.
+		} else if (next == NULL && strcmp(after, current->item) == 0) {
+			//Adds an item to the end of the list if the after string is the current last item.
 			Node *thisNode = makeNode(newObj);
 			thisNode->xord_address = current;
 			current->xord_address = XORAddresses(current->xord_address, thisNode);
@@ -126,70 +140,74 @@ int insert_after(const char* after, const char* newObj) {
 		prev = current;
 		current = next;
 	}
-	return 0;
+	return 0; //Couldn't find the after string so insert failed.
 }
 
-int remove_string(char* result){
-	if (head == NULL){
+//Removes the string at the beginning of the list.
+int remove_string(char* result) { //If there is nothing in the list return fail.
+	if (head == NULL) {
 		return 0;
 	}
-	if (head->xord_address != NULL){
+	if (head->xord_address != NULL) {
+		//If the head isn't the only item in the lisr, update the next node's pointers.
 		head->xord_address->xord_address = XORAddresses(head->xord_address->xord_address, head);
 		Node *temp = head->xord_address;
-		strcpy(result, head->item);
+		strcpy(result, head->item); //Updates the result to store the item from the removed node.
 		deleteNode(head);
 		head = temp;
-		return 1;
-	} else{
+		return 1; //Success.
+	} else {
 		strcpy(result, head->item);
-		deleteNode(head);
+		deleteNode(head); //Just deletes the head as its the last node in the list.
+		return 1;
 	}
 	return 0;
 }
 
-int remove_after(const char *after, char *result){
-	Node *current = head;
+//Removes the node that follows a given string.
+int remove_after(const char *after, char *result) {
+	Node *current = head; //Defines the pointers needed to loop through the list.
 	Node *prev = NULL;
 	Node *next;
-	while (current != NULL){
+	while (current != NULL) {
 		next = XORAddresses(current->xord_address, prev);
-		if (next == NULL){
-			return 0;
-		}
-		if (prev != NULL && strcmp(prev->item, after) == 0){
-			strcpy(result, current->item);
-			if (prev != NULL){
-				prev->xord_address = XORAddresses(XORAddresses(prev->xord_address, current), next);
-				next->xord_address = XORAddresses(XORAddresses(next->xord_address, current), prev);
-				deleteNode(current);
-				return 1;
+		if (prev != NULL && strcmp(prev->item, after) == 0) {
+			strcpy(result, current->item); //If the item to remove is found, copy it into result.
+			if (prev != NULL) {
+				prev->xord_address = XORAddresses(XORAddresses(prev->xord_address, current), next); //Update the pointers.
+				if (next != NULL) {
+					next->xord_address = XORAddresses(XORAddresses(next->xord_address, current), prev);
+				}
+				deleteNode(current); //Delete the node.
+				return 1; //Return success.
 			}
 		}
 		prev = current;
 		current = next;
 	}
-	return 0;
+	return 0; //If it reaches here it has failed so return 0.
 }
 
+//Removes the item before the given string.
 int remove_before(const char *before, char *result) {
-	Node *current = head;
+	Node *current = head; //Defines the pointers needed to loop through the list.
 	Node *prev = NULL;
 	Node *next;
-	while (current != NULL){
+	while (current != NULL) {
 		next = XORAddresses(current->xord_address, prev);
-		if (next == NULL){
+		if (next == NULL) { //If the end of the list is reached, return fail.
 			return 0;
 		}
-		if (next != NULL && strcmp(next->item, before) == 0){
-			strcpy(result, current->item);
-			if (prev != NULL){
+		if (next != NULL && strcmp(next->item, before) == 0) {
+			strcpy(result, current->item); //Result found, copy it into result.
+			if (prev != NULL) { //Update the pointers as required.
 				prev->xord_address = XORAddresses(XORAddresses(prev->xord_address, current), next);
-			} else{
+			} else {
 				head = next;
 			}
 			next->xord_address = XORAddresses(XORAddresses(next->xord_address, current), prev);
-			deleteNode(current);
-			return 1;
+			deleteNode(current); //Delete the node.
+			return 1; //Return success.
 		}
 		prev = current;
 		current = next;
@@ -197,13 +215,14 @@ int remove_before(const char *before, char *result) {
 	return 0;
 }
 
-void print_list(){
+//Loop through the list and print each element.
+void print_list() {
 	//https://stackoverflow.com/questions/4372976/c-print-linked-list-of-strings
 	//All functions that loop through the list are based on the pseudocode from the link above.
 	Node *current = head;
 	Node *next;
 	Node *prev = NULL;
-	while (current != NULL){
+	while (current != NULL) {
 		next = XORAddresses(current->xord_address, prev);
 		printf("%s\n", current->item);
 		prev = current;
@@ -217,24 +236,26 @@ int main(int argc, char *argv[]) {
 	insert_string("Bravo");
 	insert_string("Charlie");
 	insert_after("Bravo", "Delta");
+	insert_after("Alpha", "Golf");
+	insert_before("Charlie", "Hotel");
 	insert_before("Alpha", "Echo");
 	print_list(); // Charlie -> Bravo -> Delta -> Echo -> Alpha
 
 	char result[10];
 	int ret;
 
-	ret = remove_after("Charlie",result);
-	if(ret){
+	ret = remove_after("hi",result);
+	if(ret) {
 		printf("Removed 1: %s\n", result);
 	}
 
-	ret = remove_before("Echo", result);
-	if(ret){
+	ret = remove_before("Bravo", result);
+	if(ret) {
 		printf("Removed 2: %s\n", result);
 	}
 
 	ret = remove_string(result);
-	if(ret){
+	if(ret) {
 		printf("Removed 3: %s\n", result);
 	}
 	print_list();

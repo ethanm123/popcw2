@@ -21,34 +21,45 @@
 */
 import java.lang.Math;
 
-public class CWK2Q8{
+public class CWK2Q8 {
 
+	//Month offsets used in Sakamoto's algorithm.
   private static final int[] leading_days = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
 
-  private static int isTuesday(int year, int month){
+  /*
+	 * Checks if a given date is a Tuesday.
+	 * @param year the year of the date.
+	 * @param month the month to look at.
+	*/
+	private static int isTuesday(int year, int month) {
     //https://en.wikipedia.org/wiki/Determination_of_the_day_of_the_week Sakamoto's algorithm
-    if (month < 3){
+    if (month < 3) { //If the month is January or Febrary, treat it as a month of the previous year.
       year--;
     }
+		//Performing Sakamoto's algorithm.
     int result = (year + year / 4 - year / 100 + year / 400 + leading_days[month - 1] + 1) % 7;
-    if (result == 2){
+    if (result == 2) { //If the result is 2 it is a Tuesday.
       return 1;
     } else{
       return 0;
     }
   }
 
-  public static int howManyTuesdays(){
+	/*
+	 * Loops through all years and months to count the total Tuesdays.
+	 * @return the number of Tuesdays on the 1st day in the month in the 20th century.
+	*/
+  public static int howManyTuesdays() {
     int totalTuesdays = 0;
-		for (int i = 1901; i <= 2000; i++){
-      for (int j = 1; j <= 12; j++){
+		for (int i = 1901; i <= 2000; i++) { //Loop through all years in question.
+      for (int j = 1; j <= 12; j++) { //Loop through all the months.
         totalTuesdays = totalTuesdays + isTuesday(i, j);
 			}
     }
     return totalTuesdays;
   }
 
-	public static void main(String[] args){
+	public static void main(String[] args) {
 		int result = CWK2Q8.howManyTuesdays();
 		System.out.println("Number of Tuesdays = " + result);
 	}

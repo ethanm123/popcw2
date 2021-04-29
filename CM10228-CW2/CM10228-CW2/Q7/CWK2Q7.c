@@ -43,21 +43,30 @@
 #include <stdlib.h>
 #include <string.h>
 
-int *sortKey(const char *key){
+//Alphabetically sorting the key using bubble sort.
+int *sortKey(const char *key) {
 	//Using buuble sort pseudocode from lecture
 	char *edit_key = (char *) malloc((strlen(key) + 1) * sizeof(char));
-	strcpy(edit_key, key);
+	if (edit_key == NULL) { //Allocate memory for key and check for null pointer.
+		printf("Error allocating memory for edit key");
+		exit(0);
+	}
+	strcpy(edit_key, key); 
 	int *sorted_key = (int *) malloc((strlen(key) + 1) * sizeof(int));
-	for (int i = 0; i < strlen(key); i++){
+	if (sorted_key == NULL) { //Allocate memory for the sorted indexes, check for null pointer.
+		printf("Error allocating memory for sorted_key");
+		exit(0);
+	}
+	for (int i = 0; i < strlen(key); i++) { //Add values to the sorted_key representing all the chars in the key.
 		sorted_key[i] = i;
 	}
 	int swapped = 1;
 	char char_temp;
 	int int_temp;
-	while (swapped){
+	while (swapped) { //Performing bubble sort on the key, and moving the appropriate elements in the sorted_key.
 		swapped = 0;
-		for (int i = 1; i < strlen(key); i++){
-			if (edit_key[i - 1] > edit_key[i]){
+		for (int i = 1; i < strlen(key); i++) {
+			if (edit_key[i - 1] > edit_key[i]) { 
 				char_temp = edit_key[i - 1];
 				edit_key[i - 1] = edit_key[i];
 				edit_key[i] = char_temp;
@@ -68,79 +77,82 @@ int *sortKey(const char *key){
 			}
 		}
 	}
-	free(edit_key);
-	return sorted_key;
+	free(edit_key); 
+	return sorted_key; //Returns the array of positions of chars after they have been ordered alphabetically.
 }
 
-void encrypt_columnar(const char *message_filename, const char *key, char **result){
-	char **sorting_array = (char **) malloc(2 * sizeof(*sorting_array));
+//The main function for the columnar encryption.
+void encrypt_columnar(const char *message_filename, const char *key, char **result) {
+	char **sorting_array = (char **) malloc(2 * sizeof(*sorting_array)); //Allocating memory for the sorting_array and its first 2 elements.
 	sorting_array[0] = (char*) malloc((strlen(key) + 1) * sizeof(char));
 	sorting_array[1] = (char*) malloc((strlen(key) + 1) * sizeof(char));
-	if (sorting_array == NULL){
+	if (sorting_array == NULL || sorting_array[0] == NULL || sorting_array[1] == NULL) { //Checking for null pointers.
 		printf("Error allocating memory for array");
 		exit(0);
 	}
-	int *sorted_key = sortKey(key);
+	int *sorted_key = sortKey(key); //Get the sorted key from function above.
 	int size = 2;
 	int first_index = 0;
 	int second_index = 0;
 	char thisChar;
 	int increment;
-	FILE *file = fopen(message_filename, "r");
-	if (file == NULL){
+	FILE *file = fopen(message_filename, "r"); 
+	if (file == NULL) { //Open the message file and make sure it exists.
 		printf("File does not exist");
 		return;
 	}
-	//https://www.codevscolor.com/c-program-read-file-contents-character
-	while ((thisChar = fgetc(file)) != EOF){
+	//Looping through characters in the file one by one: https://www.codevscolor.com/c-program-read-file-contents-character
+	while ((thisChar = fgetc(file)) != EOF) {
 		increment = 1;
-		if (thisChar == '\n'){
+		if (thisChar == '\n') { //Skip newline characters.
 			continue;
 		}
-		sorting_array[first_index][second_index] = thisChar;
-		if (second_index == strlen(key) - 1){
+		sorting_array[first_index][second_index] = thisChar; //Add this char to the right position in the string.
+		if (second_index == strlen(key) - 1) { //If the string is as long as the key make a new string.
 			second_index = 0;
 			increment = 0;
-			sorting_array[first_index][strlen(key)] = '\0';
+			sorting_array[first_index][strlen(key)] = '\0'; //Add null terminator to the end of the string.
 			first_index++;
-			sorting_array[first_index] = (char*) malloc((strlen(key) + 1) * sizeof(char));
+			sorting_array[first_index] = (char*) malloc((strlen(key) + 1) * sizeof(char)); //Allocate memory for the next string.
 		}
-		if (first_index == size - 1){
+		if (first_index == size - 1) {
+			//Allocate extra memory for the table.
 			char **new_array = (char **) realloc(sorting_array, sizeof(*sorting_array)  * (size + 1));
-			if (new_array == NULL){
+			if (new_array == NULL) { //Check for null pointer.
 				printf("error allocating more memory");
 				exit(0);
-			} else{
+			} else {
 				increment = 0;
 				size++;
 				sorting_array = new_array;
 				second_index = 0;
 			}
 		}
-		if (increment){
+		if (increment) {
 			second_index++;
 		}
 	}
-	if (second_index < strlen(key)){
-		for (int i = second_index; i < strlen(key); i++){
+	if (second_index < strlen(key)) { //Pad with x's if needed.
+		for (int i = second_index; i < strlen(key); i++) {
 			sorting_array[first_index][i] = 'x';
 		}
 		sorting_array[first_index][strlen(key)] = '\0';
 	}
-	*result = (char *) malloc(((strlen(key) + 1) * (size - 1)) * sizeof(char));
-	if (*result == NULL){
+	*result = (char *) malloc(((strlen(key) + 1) * (size - 1)) * sizeof(char)); //Allocate memory to result.
+	if (*result == NULL) { //Check for null pointer.
 		printf("Error allocating memory for result");
 		exit(0);
 	}
 	int count = 0;
-	for (int i = 0; i < size - 1; i++){
-		for (int j = 0; j < strlen(key); j++){
+	for (int i = 0; i < size - 1; i++) {
+		for (int j = 0; j < strlen(key); j++) {
+			//Loop through all of the strings and add the characters to the result in the order defined by the bubble sort.
 			strncat(*result, &sorting_array[i][sorted_key[j]], 1);
 			count++;
 		}
-		free(sorting_array[i]);
+		free(sorting_array[i]); //Free the memory used in sorting array.
 	}
-	free(sorting_array);
+	free(sorting_array); //Free all of the other memory used.
 	free(sorted_key);
 	fclose(file);
 }

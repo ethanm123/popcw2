@@ -1,5 +1,8 @@
 import java.util.ArrayList;
 import java.util.Collections;
+import java.text.DecimalFormat;
+import java.util.Arrays;
+
 
 /**
  *  @author Anonymous (do not change)
@@ -16,46 +19,53 @@ import java.util.Collections;
  *  decimal places (e.g. 1.00).
  *
 */
-import java.text.DecimalFormat;
-import java.util.Arrays;
 
 public class CWK2Q1 {
 
+	//Defining gaps as required in spec.
 	private static final ArrayList<Integer> gaps = new ArrayList<Integer>(Arrays.asList(511, 255, 127, 63, 31, 15, 7, 3, 1));
 
-	private static void printArray(ArrayList<Double> array){
-		//https://stackoverflow.com/q/2538787
+	/**
+	 * Function for printing out the array in the format required (2dp).
+   * @param array The array that needs printing.
+	*/
+	private static void printArray(ArrayList<Double> array) {
+		//https://stackoverflow.com/q/2538787 learning how to format to 2dp.
 		DecimalFormat formatDecimals = new DecimalFormat();	
-		formatDecimals.setMaximumFractionDigits(2);
+		formatDecimals.setMaximumFractionDigits(2); //Defining the decimal format required (must be 2dp.)
 		formatDecimals.setMinimumFractionDigits(2);
 		int n = array.size();
 		String output = "[";
-		for (int printer = 0; printer < n; printer++){
-			if (printer != n - 1){
-				output = output + formatDecimals.format(array.get(printer)) + ", ";
-			} else{
-				output = output + formatDecimals.format(array.get(printer)) + "]";
+		for (int printer = 0; printer < n; printer++) { //Looping through the array.
+			if (printer != n - 1) {
+				output = output + formatDecimals.format(array.get(printer)) + ", "; //Adding the string of each decimal to the output.
+			} else {
+				output = output + formatDecimals.format(array.get(printer)) + "]"; //Ending the output with the square bracket.
 			}
 		}
-		System.out.println(output);
+		System.out.println(output); //Printing the finished output.
 	}
 
+	/*
+	 * The main shell sort function that performs the sorting.
+	 * @param array The array to be sorted.
+	*/
 	public static void shell_sort(ArrayList<Double> array) {
-		//Pseudocode from https://en.wikipedia.org/wiki/Shellsort
+		//Using the pseudocode from the provided wikipedia article (https://en.wikipedia.org/wiki/Shellsort).
 		int n = array.size();
-		if (n > 1000){
+		if (n > 1000) { //If the array is bigger than 1000 doubles it returns (up to 1000 signed doubles as required in the spec.)
 			return;
 		}
 		int j;
-		for (Integer gap : gaps){
-			for (int i = gap; i < n; i++){
-				double temp = array.get(i);
-				for (j = i; j >= gap && array.get(j - gap) > temp; j -= gap){
+		for (Integer gap : gaps) { //Looping through each gap.
+			for (int i = gap; i < n; i++) { //Only enters into this loop if the gap is less than the length of the array.
+				double temp = array.get(i); //Stores the variable that is currently in this position of the array.
+				for (j = i; j >= gap && array.get(j - gap) > temp; j -= gap) { //Moves earlier sorted elements until the correct position for temp is found.
 					array.set(j, array.get(j - gap));
 				}
-				array.set(j, temp);
+				array.set(j, temp); //Sets this position's value to temp.
 			}
-			printArray(array);
+			printArray(array); //Printing the array after each gap.
 		}
 	}
 

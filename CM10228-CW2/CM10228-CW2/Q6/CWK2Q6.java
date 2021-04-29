@@ -43,48 +43,67 @@ import java.util.List;
 
 public class CWK2Q6 {
 
-  private static final ArrayList<String> punctuationToEndSentence = new ArrayList<String>(Arrays.asList("!", ".", "?"));
+  private static final ArrayList<String> punctuationToEndSentence = new ArrayList<String>(Arrays.asList("!", ".", "?")); //List of sentence ending punctuation.
 	private static ArrayList<String> wordsToRedact;
 	private static ArrayList<String> previouslyRedacted = new ArrayList<String>();
 
-  private static String asteriskStringGenerator(String toAsterisk){
+  /*
+	 * Returns a string of asterisks that is the same length as the word being redacted. Keeps punctuation consistent.
+	 * @param toAsterisk the string that needs to be redacted.
+	 * @return a string of asterisks and punctuation with appropriate length.
+	*/
+	private static String asteriskStringGenerator(String toAsterisk) {
 		boolean dot = false;
-    if (wordsToRedact.contains(toAsterisk.replaceAll("\"|'|“", ""))){
-			if (wordsToRedact.get(wordsToRedact.indexOf(toAsterisk.replaceAll("\"|'|“", ""))).contains(".")){
-				dot = true;
+    if (wordsToRedact.contains(toAsterisk.replaceAll("\"|'|“", "").toUpperCase())) {
+			if (wordsToRedact.get(wordsToRedact.indexOf(toAsterisk.replaceAll("\"|'|“", "").toUpperCase())).contains(".")) {
+				dot = true; //Checks if the dot needs to be redacted.
 			}
 		}
 		String asteriskString = "";
-    for (int i = 0; i < toAsterisk.length(); i++){
-      if (Character.isLetter(toAsterisk.charAt(i)) || (dot && toAsterisk.charAt(i) == ".".charAt(0))){
-        asteriskString = asteriskString + "*";
-      } else{
-        asteriskString = asteriskString + toAsterisk.charAt(i);
+    for (int i = 0; i < toAsterisk.length(); i++) {
+      if (Character.isLetter(toAsterisk.charAt(i)) || (dot && toAsterisk.charAt(i) == ".".charAt(0))) {
+        asteriskString = asteriskString + "*"; //Redact all letters or dots that need redacting.
+      } else {
+        asteriskString = asteriskString + toAsterisk.charAt(i); //If not just add the punctuation.
       }
     }
-    return asteriskString;
+    return asteriskString; 
   }
 
-  private static ArrayList<String> getRedactList(String redactFileName) throws IOException{
-		BufferedReader redactReader = new BufferedReader(new FileReader(redactFileName));
+	/*
+	 * Gets the list of words that need redacting from the redact.txt file.
+	 * @param redactFileName the file name of words to redact.
+	 * @return ArrayList of words that need to be redacted.
+	*/
+  private static ArrayList<String> getRedactList(String redactFileName) throws IOException {	
+		if (!((new File(redactFileName)).exists())) { //Check if redact file exists.
+			System.out.println("Redact file does not exist");
+			System.exit(0);
+		}
+		BufferedReader redactReader = new BufferedReader(new FileReader(redactFileName)); //Open buffered reader.
     ArrayList<String> redactList = new ArrayList<String>();
 		String line;
     String previousLine = "";
-		while ((line = redactReader.readLine()) != null){
-			for (String s : line.split(" ")){
-        redactList.add(s);
+		while ((line = redactReader.readLine()) != null) {
+			for (String s : line.split(" ")) { //Split each line by spaces and add it to the array list.
+        redactList.add(s.toUpperCase());
       }
 		}
-    redactReader.close();
+    redactReader.close(); //Close buffered reader.
     return redactList;
 	}
 
-  private static boolean firstLetterCapital(String toTest){
-    for (int i = 0; i < toTest.length(); i++){
-      if (Character.isLetter(toTest.charAt(i))){
-        if (Character.isUpperCase(toTest.charAt(i))){
+  /*
+	 * Checks if the first letter of a given string is a capital letter.
+	 * @param toTest the string to check.
+	 * @return true if the first letter is a capital, false if it is not.
+	*/
+	private static boolean firstLetterCapital(String toTest) { 
+    for (int i = 0; i < toTest.length(); i++) { //Finds first letter in string.
+      if (Character.isLetter(toTest.charAt(i))) {
+        if (Character.isUpperCase(toTest.charAt(i))) { //Checks if it is upper case.
           return true;
-        } else{
+        } else {
           return false;
         }
       }
@@ -92,72 +111,101 @@ public class CWK2Q6 {
     return false;
   }
 
-  private static boolean testProperNoun(String toTest, String toTestNoPunc, String prevWord, String previousLine, ArrayList<String> wordsToRedact){
-		if (previouslyRedacted.contains(toTestNoPunc.replaceAll("\"|'|“", "").toUpperCase())){
+	/*
+	 * Runs a series of checks to see if a word is a proper noun or just some random word with a capital.
+	 * @param toTest the string that needs to be checked to see if it is a proper noun or not
+	 * @param toTestNoPunc toTest with punctuation removed.
+	 * @param prevWord the previous word from the line. Used to see if punctuation was at the end.
+	 * @param previousLine see if the word is at the start of a paragraph.
+	 * @return true if the word is a proper noun, false if not.
+	*/
+  private static boolean testProperNoun(String toTest, String toTestNoPunc, String prevWord, String previousLine) {
+		if (previouslyRedacted.contains(toTestNoPunc.replaceAll("\"|'|“", "").toUpperCase())) {
+			//Check if the word has been redacted previously. If it has, redact it again.
 			return true;
-		} else if (((previousLine.equals("") && prevWord.length() == 0) || (prevWord.length() > 0 && punctuationToEndSentence.contains(Character.toString(prevWord.charAt(prevWord.length() - 1))) && !previouslyRedacted.contains(toTestNoPunc.replaceAll("\"|'|“", "").toUpperCase())))){
-      return wordsToRedact.contains(toTestNoPunc.replaceAll("\"|'|“", ""));
-    } else if (toTestNoPunc.equals("I")){
+		} else if (((previousLine.equals("") && prevWord.length() == 0) || (prevWord.length() > 0 && punctuationToEndSentence.contains(Character.toString(prevWord.charAt(prevWord.length() - 1))) && !previouslyRedacted.contains(toTestNoPunc.replaceAll("\"|'|“", "").toUpperCase())))) {
+			//Check if the word is at the start of a sentence or paragraph. If so, check the redact list.
+      return wordsToRedact.contains(toTestNoPunc.replaceAll("\"|'|“", "").toUpperCase());
+    } else if (toTestNoPunc.equals("I")) {
+			//I is not a proper noun, account for this.
       return false;
-    } else{
+    } else {
+			//If it falls to here it must be a proper noun so add it to the list of previously redacted words and return true.
 			previouslyRedacted.add(toTestNoPunc.replaceAll("\"|'|“", "").toUpperCase());
       return true;
     }
   }
 
-  private static void makeResultsFile() throws IOException{
+	/*
+	 * Creates the results file that will be written in.
+	*/
+  private static void makeResultsFile() throws IOException {
     File resutltFile = new File("./result.txt");
     if (!resutltFile.exists()) {
       resutltFile.createNewFile();
     }
   }
 
-  private static void writeToResultsFile(StringBuffer fileRewrite) throws IOException{
+	/*
+	 * Writes all of the results that have been compiled to the results file.
+	 * @param fileRewrite a string buffer containing all of the words to add to the file.
+	*/
+  private static void writeToResultsFile(StringBuffer fileRewrite) throws IOException {
     FileOutputStream fileOut = new FileOutputStream("./result.txt");
     fileOut.write(fileRewrite.toString().getBytes());
     fileOut.close();
   }
 
-	public static void redactWords(String textFilename, String redactWordsFilename){
-    try{
+	/*
+	 * The main function for redacting the words.
+	 * @param textFilename the name of the text file to be redacted.
+	 * @param redactWordsFilename the name of the filename that contains words to be redacted.
+	*/
+	public static void redactWords(String textFilename, String redactWordsFilename) {
+    try {
 			int count = 0;
       makeResultsFile();
+			if (!((new File(textFileName)).exists())) { //Check if text file exists.
+				System.out.println("Text file does not exist");
+				System.exit(0);
+			}	
       wordsToRedact = getRedactList(redactWordsFilename);
-      BufferedReader textFileReader = new BufferedReader(new FileReader(textFilename));
+      BufferedReader textFileReader = new BufferedReader(new FileReader(textFilename)); //Open buffered reader.
       StringBuffer fileRewrite = new StringBuffer();
       String line, lineNoPunc, currentWordNoPunc;
       String previousLine = "";
       String prevWord = "";
       String newLineString;
       List<String> currentLineWords, currentLineWordsNoPunc;
-      while ((line = textFileReader.readLine()) != null){
+      while ((line = textFileReader.readLine()) != null) { //Read each line of the file.
         newLineString = "";
-        //Regex from https://www.studytonight.com/java-examples/how-to-remove-punctuation-from-string-in-java
-        currentLineWords = Arrays.asList(line.split(" "));
-				if (line.equals("")){
+        currentLineWords = Arrays.asList(line.split(" ")); //Split the words based on spaces.
+				if (line.equals("")) { //If line is empty, reflect this in prevWord.
 					prevWord = "";
 				}
-        for (int i = 0; i < currentLineWords.size(); i++){
-					currentWordNoPunc = currentLineWords.get(i).replaceAll("\\p{Punct}", "");
-          if (firstLetterCapital(currentWordNoPunc)){
-						if (testProperNoun(currentLineWords.get(i), currentWordNoPunc, prevWord, previousLine, wordsToRedact)){
-							newLineString = newLineString + " " + asteriskStringGenerator(currentLineWords.get(i));
-						} else{
-							newLineString = newLineString + " " + currentLineWords.get(i);
+        for (int i = 0; i < currentLineWords.size(); i++) { //LOop through each word in the line.
+					//Regex from https://www.studytonight.com/java-examples/how-to-remove-punctuation-from-string-in-java
+					currentWordNoPunc = currentLineWords.get(i).replaceAll("\\p{Punct}", ""); //Strip each word of its punctuation.
+          if (firstLetterCapital(currentWordNoPunc)) { //If the first letter is a capital:
+						if (testProperNoun(currentLineWords.get(i), currentWordNoPunc, prevWord, previousLine)) { //Check if its a proper noun.
+							newLineString = newLineString + " " + asteriskStringGenerator(currentLineWords.get(i)); //If it is, run it through the string generator.
+						} else {
+							newLineString = newLineString + " " + currentLineWords.get(i); //If it isn't just add it to the line that will be written to the results file.
 						}
-          } else{
-            newLineString = newLineString + " " + currentLineWords.get(i);
+          } else {
+            newLineString = newLineString + " " + currentLineWords.get(i); //If the first letter is not a capital just add it straight to the string buffer.
           }
 					prevWord = currentLineWords.get(i);
         }
-        fileRewrite.append(newLineString + "\n");
+        fileRewrite.append(newLineString + "\n"); //Add the line to the string buffer.
         previousLine = line;
         prevWord = currentLineWords.get(currentLineWords.size() - 1);
       }
-      writeToResultsFile(fileRewrite);
+      writeToResultsFile(fileRewrite); //Write the results to the file and close the buffered reader.
       textFileReader.close();
-    } catch (IOException e){
+    } catch (IOException e) { //Catch the IO Exception and exit if it happens.
       System.out.println("Error reading/writing file");
+			System.exit(0);
     }
 	}
 
