@@ -258,5 +258,15 @@ int main(int argc, char *argv[]) {
 	if(ret) {
 		printf("Removed 3: %s\n", result);
 	}
+	remove_string(result);
+	remove_string(result);
+	remove_string(result);
+	remove_string(result);
+	remove_string(result);
+	remove_string(result);
+	remove_string(result);
+	remove_string(result);
+	remove_string(result);
+	
 	print_list();
 }

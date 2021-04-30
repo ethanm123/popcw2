@@ -165,7 +165,7 @@ public class CWK2Q6 {
     try {
 			int count = 0;
       makeResultsFile();
-			if (!((new File(textFileName)).exists())) { //Check if text file exists.
+			if (!((new File(textFilename)).exists())) { //Check if text file exists.
 				System.out.println("Text file does not exist");
 				System.exit(0);
 			}	

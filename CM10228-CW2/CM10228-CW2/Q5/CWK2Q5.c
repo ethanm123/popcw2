@@ -140,6 +140,29 @@ char **getRedactWords(const char *redact_file, int *redact_length) {
 		}
 		}	
 	}
+	if (char_count != 0) { //If it hit EOF whilst still having a string to write.
+		char **newRedactList = (char**) realloc(redactList, ((size + 1) * sizeof(*newRedactList)));
+		if (newRedactList == NULL) { 
+			printf("Error expanding redact list");
+			exit(0);
+		} else {
+			size++;
+			redactList = newRedactList;
+		}
+		char *newString = realloc(currentString, (char_count + 1) * sizeof(char));
+		if (newString == NULL) { //Realloc and check for null pointer.
+			printf("Error allocating memory");
+			exit(0);
+		} else { 
+			currentString = newString;
+			currentString[char_count] = '\0'; //Add string terminator.
+			char_count++; 
+			redactList[count] = currentString; //Add string to redact list.
+			*redact_length += 1; 
+			char_count = 0;
+			count++;
+		}
+	}
 	return redactList; //Return the list of words to redact.
 }
 
@@ -201,10 +224,29 @@ void redact_words(const char *text_filename, const char *redact_words_filename) 
 			count = 0;
 		}
 	}
-	free(currentString); //Free memory and close files.
-	for (int i = 0; i < redact_length; i++){
-		free(redactList[i]);
+	if (count != 0) {
+		char *newString = realloc(currentString, (count + 1) * sizeof(char));
+		if (newString == NULL) {
+			printf("Error allocating memory");
+			exit(0);
+		} else {
+			currentString = newString;
+			currentString[count] = '\0'; //If at the end of the string add null terminator.
+			count++;
+			if (toRedact(currentString, redactList, redact_length)) {
+				//If it is in redact list then add asterisks to the results file.
+				for (int i = 0; i < count - 1; i++) {
+					fputc('*', results_file);
+				}
+			} else { //If it isn't in the file add the string to the results file.
+				fputs(currentString, results_file);
+			}
+			if (thisChar != EOF) {
+				fputc(thisChar, results_file); //If the char wasn't a letter just add it to the results file.
+			}
+		}
 	}
+	free(currentString); //Free memory and close files.
 	free(redactList);
 	fclose(results_file);
 	fclose(text_file);

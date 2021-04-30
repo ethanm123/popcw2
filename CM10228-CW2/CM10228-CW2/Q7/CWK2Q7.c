@@ -132,7 +132,11 @@ void encrypt_columnar(const char *message_filename, const char *key, char **resu
 			second_index++;
 		}
 	}
-	if (second_index < strlen(key)) { //Pad with x's if needed.
+	if (second_index == 0) { //Make sure extra string is not appended to end of result if it isn't needed.
+		free(sorting_array[first_index]);
+		size--;
+	}
+	if (second_index != 0 && second_index < strlen(key)) { //Pad with x's if needed.
 		for (int i = second_index; i < strlen(key); i++) {
 			sorting_array[first_index][i] = 'x';
 		}

@@ -172,6 +172,20 @@ int main(int argc, char *argv[]) {
 	add_to_map(stringThree);
 	printf("\n");
 	print_map();
+	remove_from_map(stringOne);
+	remove_from_map(stringTwo);
+	remove_from_map(stringOne);
+	remove_from_map(stringThree);
+	remove_from_map(stringFour);
+	remove_from_map(stringFive);
+	remove_from_map("test");
+	remove_from_map("test");
+	remove_from_map("test");
+	remove_from_map("test");
+	remove_from_map("test");
+	remove_from_map("test");
+	print_map();
+
 
 	return EXIT_SUCCESS;
 }
